@@ -1,5 +1,5 @@
 # Panorama UI unzipped
-:tada: Up-to-date repository containing the unzipped CS:GOs panorama UI files (`csgo/panorama/code.pbin`). Automatically updates when a CS:GO update is released on Steam
+:tada: Up-to-date repository containing the unzipped CS:GOs panorama UI files (`csgo/panorama/code.pbin`).
 
 ## Interesting files / folders:
 - [scripts/common/eventdefinition.js](https://github.com/KeinNameVorhanden/panorama/blob/master/scripts/common/eventdefinition.js)
