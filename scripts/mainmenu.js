@@ -26,6 +26,9 @@ var MainMenu = ( function() {
 
 	var _m_hOnEngineSoundSystemsRunningRegisterHandle = null;
 
+	var _m_jobFetchTournamentData = null;
+	const TOURNAMENT_FETCH_DELAY = 10;
+
 	                                         
 	let nNumNewSettings = UpdateSettingsMenuAlert();
 
@@ -71,6 +74,32 @@ var MainMenu = ( function() {
 			}
 		}
 	};
+
+	function _FetchTournamentData ()
+	{
+		                                         
+
+		                                                             
+		if ( _m_jobFetchTournamentData )
+			return;
+		
+		TournamentsAPI.RequestTournaments();
+			
+		_m_jobFetchTournamentData = $.Schedule( TOURNAMENT_FETCH_DELAY, function ()
+		{
+			_m_jobFetchTournamentData = null;
+			_FetchTournamentData();
+		} );
+	}
+
+	function _StopFetchingTournamentData ()
+	{
+		if ( _m_jobFetchTournamentData )
+		{
+			$.CancelScheduled( _m_jobFetchTournamentData );
+			_m_jobFetchTournamentData = null;
+		}
+	}
 
 	var _SetBackgroundMovie = function()
 	{
@@ -130,11 +159,16 @@ var MainMenu = ( function() {
 		                                                                          
 		_DeleteSurvivalEndOfMatch();
 
+		                                 
+		_DeletePauseMenuMissionPanel();
+
 		                                                               
 		_ShowHideAlertForNewEventForWatchBtn();
 
 		                                                         
-		_UpdateUnlockCompAlert()
+		_UpdateUnlockCompAlert();
+
+		_FetchTournamentData();
 	};
 
 	var _TournamentDraftUpdate = function ()
@@ -276,6 +310,8 @@ var MainMenu = ( function() {
 		_CancelNotificationSchedule();
 
 		UiToolkitAPI.CloseAllVisiblePopups();
+
+		_StopFetchingTournamentData();
 	};
 
 	var _OnShowPauseMenu = function()
@@ -311,6 +347,9 @@ var MainMenu = ( function() {
 		                                                            
 		_UpdateSurvivalEndOfMatchInstance();
 
+		                                               
+		_AddPauseMenuMissionPanel();
+
 		                
 		_OnHomeButtonPressed();
 	};
@@ -318,7 +357,9 @@ var MainMenu = ( function() {
 	var _OnHidePauseMenu = function ()
 	{
 		$.GetContextPanel().RemoveClass( 'MainMenuRootPanel--PauseMenuMode' );
-
+		                                 
+		_DeletePauseMenuMissionPanel();
+		                                                                  
 		_OnHomeButtonPressed();
 	};
 
@@ -701,33 +742,33 @@ var MainMenu = ( function() {
 		};
 
 		                            
-		var bFeaturedPanelIsActive = false;
+		var bFeaturedPanelIsActive = true;
 		
 		if ( bFeaturedPanelIsActive )
 		{
-			_AddFeaturedPanel();
+			                                                                                
+			                                                                                 
+			_AddFeaturedPanel( 'operation/operation_mainmenu.xml', 'JsOperationPanel' );
 		}
+		                                                                           
+		                          
+		    
+			_AddWatchNoticePanel();
+		    
 		
-		_AddWatchNoticePanel();	                             
 		_ShowNewsAndStore();
 	};
 
 	var _AddStream = function()
 	{
-		var elStream = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsNewsContainer' ), 'JsStreamPanel' );
+		var elStream = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsStreamContainer' ), 'JsStreamPanel' );
 		elStream.BLoadLayout( 'file://{resources}/layout/mainmenu_stream.xml', false, false );
 	};
 
-	var _AddFeaturedPanel = function()
+	var _AddFeaturedPanel = function( xmlPath, panelId )
 	{
-		                        
-		                                                                       
-		                                                                                     
-		      
-
-		                  
-		var featuredXML = 'file://{resources}/layout/operation/operation_mainmenu.xml';
-		var elPanel = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsNewsContainer' ), 'JsFeaturedPanel' );
+		var featuredXML = 'file://{resources}/layout/' + xmlPath;
+		var elPanel = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsNewsContainer' ), panelId );
 		elPanel.BLoadLayout( featuredXML, false, false );
 
 		$.FindChildInContext( '#JsNewsContainer' ).MoveChildBefore( elPanel, $.FindChildInContext( '#JsNewsPanel' ) );
@@ -764,8 +805,11 @@ var MainMenu = ( function() {
 	
 	var _ShowNewsAndStore = function ()
 	{
-		var elNews = $.FindChildInContext( '#JsNewsContainer' );
-		elNews.SetHasClass( 'hidden', false );
+		var elPanel = $.FindChildInContext( '#JsNewsContainer' );
+		elPanel.SetHasClass( 'hidden', false );
+
+		elPanel = $.FindChildInContext( '#JsActiveMissionPanel' );
+		elPanel.SetHasClass( 'hidden', false );
 
 		var elVanityButton = $.FindChildInContext( '#VanityControls' );
 		if ( elVanityButton )
@@ -773,12 +817,19 @@ var MainMenu = ( function() {
 			elVanityButton.visible = true;
 		}
 
+		
+		elPanel = $.FindChildInContext( '#JsStreamContainer' );
+		elPanel.SetHasClass( 'hidden', false );
+
 	};
 
 	var _HideNewsAndStore = function ()
 	{
-		var elNews = $.FindChildInContext( '#JsNewsContainer' );
-		elNews.SetHasClass( 'hidden', true );
+		var elPanel = $.FindChildInContext( '#JsNewsContainer' );
+		elPanel.SetHasClass( 'hidden', true );
+
+		elPanel = $.FindChildInContext( '#JsActiveMissionPanel' );
+		elPanel.SetHasClass( 'hidden', true );
 
 		var elVanityButton = $.FindChildInContext( '#VanityControls' );
 
@@ -787,6 +838,8 @@ var MainMenu = ( function() {
 			elVanityButton.visible = false;
 		}
 
+		elPanel = $.FindChildInContext( '#JsStreamContainer' );
+		elPanel.SetHasClass( 'hidden', true );
 	};
 
 	                                                                
@@ -1141,11 +1194,12 @@ var MainMenu = ( function() {
 		var caseId = ParamsList[ 1 ];
 		var storeId = ParamsList[ 2 ];
 		var blurOperationPanel = ParamsList[ 3 ];
+		var extrapopupfullscreenstyle = ParamsList[ 4 ];
 		                                                                                    
-		var aParamsForCallback = ParamsList.slice( 4 );
+		var aParamsForCallback = ParamsList.slice( 5);
 		var showMarketLinkDefault = _m_bPerfectWorld ? 'false' : 'true';
 
-		JsInspectCallback = UiToolkitAPI.RegisterJSCallback( _OpenDecodeAfterInspect.bind( undefined, keyId, caseId, storeId, aParamsForCallback ) );
+		JsInspectCallback = UiToolkitAPI.RegisterJSCallback( _OpenDecodeAfterInspect.bind( undefined, keyId, caseId, storeId, extrapopupfullscreenstyle, aParamsForCallback ) );
 
 		UiToolkitAPI.ShowCustomLayoutPopupParameters(
 			'',
@@ -1156,13 +1210,14 @@ var MainMenu = ( function() {
 			'&' + 'showequip=false' +
 			'&' + 'showitemcert=false' +
 			'&' + blurOperationPanel +
+			'&' + 'extrapopupfullscreenstyle=' + extrapopupfullscreenstyle +
 			'&' + 'showmarketlink=' + showMarketLinkDefault +
 			'&' + 'callback=' + JsInspectCallback,
 			'none'
 		);
 	};
 
-	var _OpenDecodeAfterInspect = function( keyId, caseId, storeId, aParamsForCallback )
+	var _OpenDecodeAfterInspect = function( keyId, caseId, storeId, extrapopupfullscreenstyle, aParamsForCallback )
 	{
 		                                                                                                               
 		                                                                                    
@@ -1170,8 +1225,9 @@ var MainMenu = ( function() {
 		var backtostoreiteminspectsettings = storeId ?
 			'&' + 'asyncworkitemwarning=no' +
 			'&' + 'asyncforcehide=true' +
-			'&' + 'storeitemid=' + storeId :
-			'';
+			'&' + 'storeitemid=' + storeId +
+			'&' + 'extrapopupfullscreenstyle=' + extrapopupfullscreenstyle
+			: '';
 
 		var backtodecodeparams = aParamsForCallback.length > 0 ?
 		'&' + aParamsForCallback.join( '&' ) : 
@@ -1591,10 +1647,10 @@ var MainMenu = ( function() {
 		var elCoverPlaque = $( '#MainMenuFullScreenBlackCoverPlaque' );
 		if ( elCoverPlaque )
 			elCoverPlaque.visible = false;
-			
-		return;                                                                                                  
+		
+		                                                                                                            
 
-		var setVersionTo = '2';
+		var setVersionTo = '2109';                                       
 		var currentVersion = GameInterfaceAPI.GetSettingString( 'ui_popup_weaponupdate_version' );
 
 		if ( currentVersion !== setVersionTo )
@@ -1626,8 +1682,48 @@ var MainMenu = ( function() {
 			'',
 			'none'
 		);
-	}; 
-	
+	};
+
+	                                                                                                    
+	                         
+	                                                                                                    
+	function _AddPauseMenuMissionPanel()
+	{
+		var elPanel = null;
+		var missionId = GameStateAPI.GetActiveQuestID();
+
+		                                                         
+		var oGameState = GameStateAPI.GetTimeDataJSO();
+		
+		if ( !$.GetContextPanel().FindChildInLayoutFile( 'JsActiveMission' ) && missionId && oGameState && oGameState.gamephase !== 5 )
+		{
+			elPanel = $.CreatePanel( 
+				'Panel', 
+				$( '#JsActiveMissionPanel' ),
+				'JsActiveMission',
+				{ class: 'PauseMenuModeOnly' });
+				
+			elPanel.BLoadLayout('file://{resources}/layout/operation/operation_active_mission.xml', false, false );
+		}
+		else
+		{
+			elPanel = $.GetContextPanel().FindChildInLayoutFile( 'JsActiveMission' );
+		}
+
+		if( missionId && elPanel && elPanel.IsValid() )
+		{
+			elPanel.SetAttributeString( 'missionid', missionId );
+		}
+	}
+
+	function _DeletePauseMenuMissionPanel()
+	{
+		if( $.GetContextPanel().FindChildInLayoutFile( 'JsActiveMission' ) )
+		{
+			$.GetContextPanel().FindChildInLayoutFile( 'JsActiveMission' ).DeleteAsync( 0.0 );
+		}
+	}
+
 	                                                                                                    
 	                                                
 	                                                                                                    

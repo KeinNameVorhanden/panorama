@@ -10,6 +10,9 @@
 		<include src="file://{resources}/scripts/common/iteminfo.js" />
 		<include src="file://{resources}/scripts/common/licenseutil.js" />
 		<include src="file://{resources}/scripts/popups/popup_acknowledge_item.js" />
+		<include src="file://{resources}/scripts/operation/operation_util.js" />
+		<include src="file://{resources}/scripts/operation/operation_mission.js" />
+		<include src="file://{resources}/scripts/operation/operation_active_mission.js" />
 	</scripts>
 
 	<snippets>
@@ -62,9 +65,8 @@
 				</Button>
 			</Panel>
 			<Panel id="MainMenuInput">                                              
-				
 				<CSGOBlurTarget id="MainMenuCore" blurrects="ChatLinesContainerBg mainmenu-sidebar__blur-target CSGOLoadingScreen JsMainMenuNavBar eom-winner">
-					<CSGOBlurTarget id="MainMenuBackground" blurrects="id-mainmenu-mission-card-bg id-op-mainmenu-top mainmenu-content__blur-target JsNewsPanel id-tournament-pass-status JsStorePanel JsStreamPanel JsWatchNoticePanel id-op-mainmenu-rewards id-op-mainmenu-missions JsLastMatch">
+					<CSGOBlurTarget id="MainMenuBackground" blurrects="id-mainmenu-mission-card-bg id-op-mainmenu-top mainmenu-content__blur-target JsNewsPanel id-tournament-pass-status JsStorePanel JsStreamPanel JsWatchNoticePanel id-op-mainmenu-rewards id-op-mainmenu-missions JsLastMatch JsActiveMissionPanel id-activemission-tooltip id-active-mission">
 						<Panel class="mainmenu-vanity__vignette" hittest="false"/>
 						                                                      
 						<CSGOBackbufferImagePanel class="full-width full-height PauseMenuModeOnly" />
@@ -88,22 +90,28 @@
 						                                                       
 					</Panel >
 
+					<Button id="JsStreamContainer" class="mainmenu_stream_container hidden MainMenuModeOnly" hittest="true" >
+						                                                         
+					</Button >
+					
+
+					<Panel id="JsActiveMissionPanel"  class="mainmenu_active-mission-container PauseMenuModeOnly" />
+
 					                                                                            
 					                                                                   
 						                                                                                            
 					         
 					   
-					
 					<Panel id="JsMainMenuContent" class="mainmenu-content mainmenu-content--offscreen">
 						<Panel class="mainmenu-content__blur">
 							<Panel id="mainmenu-content__blur-target"/>
 						</Panel>
 						                                                                                    
 					</Panel>
+
 				</CSGOBlurTarget>
 
 				<CSGOBlurTarget id="MainMenuNavBarLeft" class="mainmenu-navbar-container" blurrects="CSGOLoadingScreen">
-	
 					<Panel id="JsMainMenuNavBar" class="mainmenu-navbar">
 						                                            
 						<RadioButton id="MainMenuNavBarHome"
@@ -263,7 +271,6 @@
 							                                                                                     
 						              
 						               
-		
 						<Panel class="vertical-align-bottom horizontal-center">
 							                                            
 							<Button id="MainMenuNavBarQuit"
@@ -305,7 +312,7 @@
 			
 			</Panel>
 			
-		</Panel>>
+		</Panel>
 
 		                                                                   
 		<CSGOPopupManager id="PopupManager" onpopupsdismissed="" />
